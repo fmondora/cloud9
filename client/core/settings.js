@@ -26,12 +26,17 @@ module.exports = {
     },
     
     saveToFile : function() {
+        var data = this.model.data && apf.xmldb.cleanXml(this.model.data.xml) || "";
         if (ide.onLine) {
             ide.send(JSON.stringify({
                 command: "settings",
                 action: "set",
-                settings: this.model.data && apf.xmldb.cleanXml(this.model.data.xml) || ""
+                settings: data
             }));
+            ide.dispatchEvent("track_action", {
+                type: "save settings",
+                settings: data
+            });
         }
         else if (this.model.data) {
             localStorage[this.sIdent] = apf.xmldb.cleanXml(this.model.data.xml) || "";
