@@ -30,9 +30,102 @@ module.exports = ext.register("ext/tree/tree", {
     loading          : false,
     changed          : false,
     animControl      : {},
-    nodes            : [],
-    
-    "default"        : true,
+
+
+    commands : {
+        "refresh": {hint: "refresh folder tree"}
+    },
+
+    onSBMouseOver : function() {
+        if (this.ignoreSBMouseOut)
+            this.pendingSBFadeOut = false;
+        this.showScrollbar();
+    },
+
+    onSBMouseOut : function() {
+        if (this.ignoreSBMouseOut)
+            this.pendingSBFadeOut = true;
+
+        clearTimeout(this.sbTimer);
+        var _self = this;
+        this.sbTimer = setTimeout(function(){
+            _self.hideScrollbar();
+        }, 300);
+    },
+
+    onSBMouseDown : function() {
+        this.ignoreSBMouseOut = true;
+    },
+
+    onSBMouseUp : function() {
+        this.ignoreSBMouseOut = false;
+        if (this.pendingSBFadeOut) {
+            this.pendingSBFadeOut = false;
+            this.hideScrollbar();
+        }
+    },
+
+    onTreeOver : function() {
+        if (this.ignoreSBMouseOut)
+            this.pendingSBFadeOut = false;
+        this.showScrollbar();
+    },
+
+    onTreeOut : function() {
+        if (this.ignoreSBMouseOut)
+            this.pendingSBFadeOut = true;
+            
+        clearTimeout(this.sbTimer);
+        var _self = this;
+        this.sbTimer = setTimeout(function(){
+            _self.hideScrollbar();
+        }, 300);
+    },
+
+    showScrollbar : function() {
+        if (this.sbTimer)
+            clearTimeout(this.sbTimer);
+            
+        if (this.sbIsFaded) {
+            if (this.animControl.state != apf.tween.STOPPED && this.animControl.stop)
+                this.animControl.stop();
+
+            apf.tween.single(sbTrFiles, {
+                type     : "fade",
+                anim     : apf.tween.EASEIN,
+                from     : 0,
+                to       : 1,
+                steps    : 20,
+                control  : this.animControl = {}
+            });
+
+            this.sbIsFaded = false;
+        }
+    },
+
+    hideScrollbar : function() {
+        if (this.ignoreSBMouseOut)
+            return;
+
+        clearTimeout(this.sbTimer);
+        if (this.sbIsFaded === false) {
+            var _self = this;
+            this.sbTimer = setTimeout(function() {
+                if (_self.animControl.state != apf.tween.STOPPED && _self.animControl.stop)
+                    _self.animControl.stop();
+                apf.tween.single(sbTrFiles, {
+                    type     : "fade",
+                    anim     : apf.tween.EASEOUT,
+                    from     : 1,
+                    to       : 0,
+                    steps    : 20,
+                    control  : _self.animControl = {}
+                });
+                _self.sbIsFaded = true;
+            }, _self.animControl.state != apf.tween.RUNNING ? 20 : 200);
+        }
+    }, 
+
 
     //@todo deprecated?
     getSelectedPath: function() {
@@ -72,12 +165,13 @@ module.exports = ext.register("ext/tree/tree", {
             checked : "[{require('ext/settings/settings').model}::auto/tree/@showhidden]",
             onclick : function(){
                 _self.changed = true;
-                
-                (davProject.realWebdav || davProject)
-                    .setAttribute("showhidden", this.checked);
 
-                _self.refresh();
-                settings.save();
+                require(["ext/tree/tree", "ext/settings/settings"], function(tree, settings) {
+                    (davProject.realWebdav || davProject).setAttribute("showhidden", this.checked);
+                    _self.refresh();
+                    settings.save();
+                })
+
             }
         }));
         

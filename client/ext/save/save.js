@@ -431,6 +431,7 @@ module.exports = ext.register("ext/save/save", {
             this.saveBuffer[path] = page;
             return;
         }
+
         //apf.xmldb.setAttribute(file, "saving", "1");
 
         var self = this;

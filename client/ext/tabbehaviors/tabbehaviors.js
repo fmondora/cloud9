@@ -24,7 +24,9 @@ module.exports = ext.register("ext/tabbehaviors/tabbehaviors", {
     $tabAccessCycle : 2,
     sep        : null,
     more       : null,
-    menuOffset : 4, //This is fucking stupid
+
+    menuOffset : 4,
+
     commands   : {
         "closetab": {hint: "close the tab that is currently active", msg: "Closing active tab."},
         "closealltabs": {hint: "close all opened tabs", msg: "Closing all tabs."},
@@ -149,7 +151,7 @@ module.exports = ext.register("ext/tabbehaviors/tabbehaviors", {
         tabEditors.addEventListener("DOMNodeRemoved", function(e) {
             if (e.$doOnlyAdmin)
                 return;
-            
+
             var page = e.currentTarget;
             _self.removeItem(page);
 
@@ -195,7 +197,9 @@ module.exports = ext.register("ext/tabbehaviors/tabbehaviors", {
         tabEditors.addEventListener("aftersavedialogcancel", function(e) {
             if (!_self.changedPages)
                 return
-            
+
+            var i, l, page;
+
             for (i = 0, l = _self.changedPages.length; i < l; i++) {
                 page = _self.changedPages[i];
                 page.removeEventListener("aftersavedialogclosed", arguments.callee);
@@ -475,11 +479,12 @@ module.exports = ext.register("ext/tabbehaviors/tabbehaviors", {
     },
 
     removeItem: function(page) {
-        var item, idx, keyId,
-            i = this.menuOffset,
-            l = this.nodes.length,
-            _self = this;
-            
+
+        var item, idx, keyId;
+        var i = this.menuOffset;
+        var l = this.nodes.length;
+        var _self = this;
+
         for (; i < l; ++i) {
             if ((item = this.nodes[i]).relPage == page.id) {
                 item.destroy(true, true);
@@ -492,7 +497,7 @@ module.exports = ext.register("ext/tabbehaviors/tabbehaviors", {
                 setTimeout(function(){
                     _self.updateState();
                 });
-                
+
                 return;
             }
         }
@@ -505,7 +510,9 @@ module.exports = ext.register("ext/tabbehaviors/tabbehaviors", {
             this.sep = null;
         }
         else if (!this.sep && (len || force)) {
-            this.sep = mnuTabs.insertBefore(new apf.divider(), mnuTabs.childNodes[this.menuOffset]);
+
+            this.sep = mnuTabs.insertBefore(new apf.divider(), mnuTabs.childNodes[8]);
+
         }
 
         if (len < (force ? 19 : 20)) { // we already have 9 other menu items
