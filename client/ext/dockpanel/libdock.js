@@ -245,7 +245,10 @@ var DockableLayout = module.exports = function(parentHBox, cbFindPage, cbStorePa
 
         state  = JSON.parse(JSON.stringify(data));
         lookup = [];
-
+        
+        if (!state.bars) 
+            return;
+        
         state.bars.each(function(bar){
             bar.uniqueId = lookup.push({data: bar}) - 1;
             
@@ -268,7 +271,7 @@ var DockableLayout = module.exports = function(parentHBox, cbFindPage, cbStorePa
      * Destroy full state
      */
     this.clearState = function(){
-        state && state.bars.each(function(b) {
+        state && state.bars && state.bars.each(function(b) {
             var bar = b.cache;
             if (!bar) return;
             

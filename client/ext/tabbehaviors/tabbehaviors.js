@@ -25,7 +25,7 @@ module.exports = ext.register("ext/tabbehaviors/tabbehaviors", {
     sep        : null,
     more       : null,
 
-    menuOffset : 4,
+    menuOffset : 4, //This is fucking stupid
 
     commands   : {
         "closetab": {hint: "close the tab that is currently active", msg: "Closing active tab."},
@@ -381,10 +381,10 @@ module.exports = ext.register("ext/tabbehaviors/tabbehaviors", {
             page = tabEditors.getPage();
         if (!page)
             return false;
-        
+
         this.revealfile(page.$doc.getNode());
     },
-    
+
     revealfile : function(docNode) {
         var path = docNode.getAttribute('path');
         var node = trFiles.queryNode('//file[@path="' + path + '"]');
@@ -446,15 +446,13 @@ module.exports = ext.register("ext/tabbehaviors/tabbehaviors", {
             var bottom = top + trFiles.$container.offsetHeight;
 
             // No scrolling needed when item is between visible boundaries.
-            if (itemPos[1] > top && itemPos[1] < bottom)
+            if (itemPos[1] >= top && itemPos[1] <= bottom) {
                 return;
-
-            var totalHeight = trFiles.$container.scrollHeight;
-            var center = trFiles.getHeight() / 2;
-            var offset = (itemPos[1] / totalHeight) > 0.5 ? ~center : center;
-            var y = itemPos[1] / (totalHeight + offset);
-
-            sbTrFiles.setPosition(y);
+            }
+            
+            var center = (trFiles.$container.offsetHeight / 2) | 0;
+            var newTop = itemPos[1] - center;
+            trFiles.$ext.scrollTop = newTop;
         }
     },
 
@@ -493,7 +491,7 @@ module.exports = ext.register("ext/tabbehaviors/tabbehaviors", {
                 keyId = "tab" + (idx == 10 ? 0 : idx);
                 if (this.commands[keyId] && typeof this.commands[keyId].hotkey != "undefined")
                     apf.hotkeys.remove(this.commands[keyId].hotkey);
-                
+
                 setTimeout(function(){
                     _self.updateState();
                 });
@@ -511,7 +509,7 @@ module.exports = ext.register("ext/tabbehaviors/tabbehaviors", {
         }
         else if (!this.sep && (len || force)) {
 
-            this.sep = mnuTabs.insertBefore(new apf.divider(), mnuTabs.childNodes[8]);
+            this.sep = mnuTabs.insertBefore(new apf.divider(), mnuTabs.childNodes[this.menuOffset]);
 
         }
 

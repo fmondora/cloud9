@@ -20,111 +20,19 @@ module.exports = ext.register("ext/tree/tree", {
     alone            : true,
     type             : ext.GENERAL,
     markup           : markup,
-    
+
     defaultWidth     : 200,
-    
+
     deps             : [fs],
-    
+
     currentSettings  : [],
     expandedList     : {},
     loading          : false,
     changed          : false,
     animControl      : {},
+    nodes            : [],
 
-
-    commands : {
-        "refresh": {hint: "refresh folder tree"}
-    },
-
-    onSBMouseOver : function() {
-        if (this.ignoreSBMouseOut)
-            this.pendingSBFadeOut = false;
-        this.showScrollbar();
-    },
-
-    onSBMouseOut : function() {
-        if (this.ignoreSBMouseOut)
-            this.pendingSBFadeOut = true;
-
-        clearTimeout(this.sbTimer);
-        var _self = this;
-        this.sbTimer = setTimeout(function(){
-            _self.hideScrollbar();
-        }, 300);
-    },
-
-    onSBMouseDown : function() {
-        this.ignoreSBMouseOut = true;
-    },
-
-    onSBMouseUp : function() {
-        this.ignoreSBMouseOut = false;
-        if (this.pendingSBFadeOut) {
-            this.pendingSBFadeOut = false;
-            this.hideScrollbar();
-        }
-    },
-
-    onTreeOver : function() {
-        if (this.ignoreSBMouseOut)
-            this.pendingSBFadeOut = false;
-        this.showScrollbar();
-    },
-
-    onTreeOut : function() {
-        if (this.ignoreSBMouseOut)
-            this.pendingSBFadeOut = true;
-            
-        clearTimeout(this.sbTimer);
-        var _self = this;
-        this.sbTimer = setTimeout(function(){
-            _self.hideScrollbar();
-        }, 300);
-    },
-
-    showScrollbar : function() {
-        if (this.sbTimer)
-            clearTimeout(this.sbTimer);
-            
-        if (this.sbIsFaded) {
-            if (this.animControl.state != apf.tween.STOPPED && this.animControl.stop)
-                this.animControl.stop();
-
-            apf.tween.single(sbTrFiles, {
-                type     : "fade",
-                anim     : apf.tween.EASEIN,
-                from     : 0,
-                to       : 1,
-                steps    : 20,
-                control  : this.animControl = {}
-            });
-
-            this.sbIsFaded = false;
-        }
-    },
-
-    hideScrollbar : function() {
-        if (this.ignoreSBMouseOut)
-            return;
-
-        clearTimeout(this.sbTimer);
-        if (this.sbIsFaded === false) {
-            var _self = this;
-            this.sbTimer = setTimeout(function() {
-                if (_self.animControl.state != apf.tween.STOPPED && _self.animControl.stop)
-                    _self.animControl.stop();
-                apf.tween.single(sbTrFiles, {
-                    type     : "fade",
-                    anim     : apf.tween.EASEOUT,
-                    from     : 1,
-                    to       : 0,
-                    steps    : 20,
-                    control  : _self.animControl = {}
-                });
-                _self.sbIsFaded = true;
-            }, _self.animControl.state != apf.tween.RUNNING ? 20 : 200);
-        }
-    }, 
+    "default"        : true,
 
 
     //@todo deprecated?
@@ -144,9 +52,9 @@ module.exports = ext.register("ext/tree/tree", {
         var _self = this;
 
         this.panel = winFilesViewer;
-        
+
         this.nodes.push(winFilesViewer);
-        
+
         colLeft.addEventListener("hide", function(){
             splitterPanelLeft.hide();
         });
@@ -166,18 +74,18 @@ module.exports = ext.register("ext/tree/tree", {
             onclick : function(){
                 _self.changed = true;
 
-                require(["ext/tree/tree", "ext/settings/settings"], function(tree, settings) {
-                    (davProject.realWebdav || davProject).setAttribute("showhidden", this.checked);
-                    _self.refresh();
-                    settings.save();
-                })
+                (davProject.realWebdav || davProject)
+                    .setAttribute("showhidden", this.checked);
+
+                _self.refresh();
+                settings.save();
 
             }
         }));
-        
+
         ide.addEventListener("loadsettings", function(e) {
             var model = e.model;
-            (davProject.realWebdav || davProject).setAttribute("showhidden", 
+            (davProject.realWebdav || davProject).setAttribute("showhidden",
                 apf.isTrue(model.queryValue('auto/tree/@showhidden')));
         });
 
@@ -207,7 +115,7 @@ module.exports = ext.register("ext/tree/tree", {
 
         trFiles.addEventListener("afterchoose", this.$afterselect = function(e) {
             var node = this.selected;
-            if (!node || node.tagName != "file" || this.selection.length > 1 
+            if (!node || node.tagName != "file" || this.selection.length > 1
               || !ide.onLine && !ide.offlineFileSystemSupport) //ide.onLine can be removed after update apf
                     return;
 
@@ -300,7 +208,7 @@ module.exports = ext.register("ext/tree/tree", {
             //trFiles.enable();
             //mnuCtxTree.enable();
         });
-        
+
         ide.addEventListener("filecallback", function (e) {
             _self.refresh();
         });
@@ -519,13 +427,13 @@ module.exports = ext.register("ext/tree/tree", {
 
         }
     },
-    
+
     enable : function(){
         this.nodes.each(function(item){
             item.enable();
         });
     },
-    
+
     disable : function(){
         this.nodes.each(function(item){
             item.disable();
